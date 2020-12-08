@@ -106,29 +106,29 @@ object TutorialTests extends TestSuite {
          assert(unchangedEvalCount == 0)
        }
 
-      // This throws a NullPointerException in coursier somewhere
-      //
-      // 'triggeredByScalaCompile - workspaceTest(Tutorial) { eval =>
-      //   val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
+       This throws a NullPointerException in coursier somewhere
+      
+       'triggeredByScalaCompile - workspaceTest(Tutorial) { eval =>
+         val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
 
-      //   val outPath = protobufOutPath(eval)
+         val outPath = protobufOutPath(eval)
 
-      //   val outputFiles = os.walk(outPath).filter(_.isFile)
+         val outputFiles = os.walk(outPath).filter(_.isFile)
 
-      //   val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
+         val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
-      //   assert(
-      //     outputFiles.nonEmpty,
-      //     outputFiles.forall(expectedSourcefiles.contains),
-      //     outputFiles.size == 3,
-      //     evalCount > 0
-      //   )
+         assert(
+           outputFiles.nonEmpty,
+           outputFiles.forall(expectedSourcefiles.contains),
+           outputFiles.size == 3,
+           evalCount > 0
+         )
 
-      //   // don't recompile if nothing changed
-      //   val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compile)
+         // don't recompile if nothing changed
+         val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compile)
 
-      //   assert(unchangedEvalCount == 0)
-      // }
+         assert(unchangedEvalCount == 0)
+       }
      }
 
     'useExternalProtocCompiler - {
