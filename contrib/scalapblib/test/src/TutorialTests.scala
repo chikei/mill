@@ -106,7 +106,7 @@ object TutorialTests extends TestSuite {
          assert(unchangedEvalCount == 0)
        }
 
-       This throws a NullPointerException in coursier somewhere
+//       This throws a NullPointerException in coursier somewhere
       
        'triggeredByScalaCompile - workspaceTest(Tutorial) { eval =>
          val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
