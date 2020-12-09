@@ -113,14 +113,14 @@ object TutorialTests extends TestSuite {
 
          val outPath = protobufOutPath(eval)
 
-         val outputFiles = os.walk(outPath).filter(_.isFile)
+         val outputFiles = os.walk(outPath).filter(os.isFile)
 
          val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
          assert(
            outputFiles.nonEmpty,
            outputFiles.forall(expectedSourcefiles.contains),
-           outputFiles.size == 3,
+           outputFiles.size == 5,
            evalCount > 0
          )
 
