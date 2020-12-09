@@ -78,58 +78,58 @@ object TutorialTests extends TestSuite {
       }
     }
 
-//     'compileScalaPB - {
-//    // Broken in Travis due to 
-//    // protoc-jar: caught exception, retrying: java.io.IOException: 
-//    // Cannot run program "/dev/null": error=13, Permission denied
-//    
-//       'calledDirectly - workspaceTest(Tutorial) { eval =>
-//         val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
-//
-//         val outPath = protobufOutPath(eval)
-//
-//         val outputFiles = os.walk(result.path).filter(os.isFile)
-//
-//         val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
-//
-//         assert(
-//           result.path == eval.outPath / 'core / 'compileScalaPB / 'dest,
-//           outputFiles.nonEmpty,
-//           outputFiles.forall(expectedSourcefiles.contains),
-//           outputFiles.size == 5,
-//           evalCount > 0
-//         )
-//
-//         // don't recompile if nothing changed
-//         val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
-//
-//         assert(unchangedEvalCount == 0)
-//       }
-//
-//      // This throws a NullPointerException in coursier somewhere
-//      //
-//      // 'triggeredByScalaCompile - workspaceTest(Tutorial) { eval =>
-//      //   val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
-//
-//      //   val outPath = protobufOutPath(eval)
-//
-//      //   val outputFiles = os.walk(outPath).filter(_.isFile)
-//
-//      //   val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
-//
-//      //   assert(
-//      //     outputFiles.nonEmpty,
-//      //     outputFiles.forall(expectedSourcefiles.contains),
-//      //     outputFiles.size == 3,
-//      //     evalCount > 0
-//      //   )
-//
-//      //   // don't recompile if nothing changed
-//      //   val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compile)
-//
-//      //   assert(unchangedEvalCount == 0)
-//      // }
-//     }
+     'compileScalaPB - {
+    // Broken in Travis due to 
+    // protoc-jar: caught exception, retrying: java.io.IOException: 
+    // Cannot run program "/dev/null": error=13, Permission denied
+    
+       'calledDirectly - workspaceTest(Tutorial) { eval =>
+         val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+
+         val outPath = protobufOutPath(eval)
+
+         val outputFiles = os.walk(result.path).filter(os.isFile)
+
+         val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
+
+         assert(
+           result.path == eval.outPath / 'core / 'compileScalaPB / 'dest,
+           outputFiles.nonEmpty,
+           outputFiles.forall(expectedSourcefiles.contains),
+           outputFiles.size == 5,
+           evalCount > 0
+         )
+
+         // don't recompile if nothing changed
+         val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+
+         assert(unchangedEvalCount == 0)
+       }
+
+//       This throws a NullPointerException in coursier somewhere
+      
+       'triggeredByScalaCompile - workspaceTest(Tutorial) { eval =>
+         val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
+
+         val outPath = protobufOutPath(eval)
+
+         val outputFiles = os.walk(outPath).filter(os.isFile)
+
+         val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
+
+         assert(
+           outputFiles.nonEmpty,
+           outputFiles.forall(expectedSourcefiles.contains),
+           outputFiles.size == 5,
+           evalCount > 0
+         )
+
+         // don't recompile if nothing changed
+         val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compile)
+
+         assert(unchangedEvalCount == 0)
+       }
+     }
 
     'useExternalProtocCompiler - {
       /* This ensure that the `scalaPBProtocPath` is properly used.
