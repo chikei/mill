@@ -93,6 +93,26 @@ trait MainModule extends mill.Module {
   }
 
   /**
+   * Resolves a mill query string and prints out the tasks it resolves to.
+   */
+  def modules(evaluator: Evaluator, targets: String*): Command[List[String]] = T.command {
+    val resolved: Either[String, List[mill.define.Module]] = RunScript.resolveTasks(
+      mill.main.ResolveModule,
+      evaluator,
+      targets,
+      SelectMode.Multi
+    )
+
+    resolved match {
+      case Left(err) => Result.Failure(err)
+      case Right(rs) =>
+        val str = rs.map(_.toString)
+        str.sorted.foreach(T.log.outputStream.println)
+        Result.Success(str)
+    }
+  }
+
+  /**
    * Given a set of tasks, prints out the execution plan of what tasks will be
    * executed in what order, without actually executing them.
    */

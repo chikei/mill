@@ -6,7 +6,110 @@ import ammonite.util.Res
 import mainargs.{MainData, TokenGrouping}
 import mill.main.ResolveMetadata.singleModuleMeta
 
+import scala.annotation.tailrec
 import scala.reflect.ClassTag
+
+object ResolveModule extends Resolve[Module] {
+  def singleModuleModules(obj: Module, discover: Discover[_], isRootModule: Boolean): Seq[Module] = {
+    obj.millModuleDirectChildren
+  }
+
+  def filterName(obj: Module, names: Seq[String]): Boolean = {
+    def filter(clz: Class[_]): Boolean = {
+      if(names.contains(clz.getSimpleName)) true
+      else {
+        if(clz.getCanonicalName == "mill.define.Module") false
+        else {
+          val supers = List(clz.getInterfaces: _*) ++ Option(clz.getSuperclass)
+          supers.exists(filter)
+        }
+      }
+    }
+
+    if(names.isEmpty) true
+    else filter(obj.getClass)
+  }
+
+  def filterCross(obj: Module, values: Seq[String]): Boolean = {
+    if(values.isEmpty) true
+    else {
+      obj.millModuleSegments.value.toList.flatMap {
+        case Segment.Cross(vs) =>
+          vs.find{ v =>
+             val str = v.toString
+             values.contains(str)
+          }
+        case _ => None
+      }.nonEmpty
+    }
+  }
+
+  def partitionFilter(filters: Seq[String]): (Seq[String], Seq[String]) = {
+    val (cross, name) = filters.partition(f => if(f.startsWith("[") && f.endsWith("]")) true else false)
+    (cross.map(f => f.substring(1, f.size - 1)), name)
+  }
+
+  def endResolveLabel(
+      obj: Module,
+      last: String,
+      discover: Discover[_],
+      rest: Seq[String]
+  ): Either[String, Seq[Module]] = {
+    def direct = singleModuleModules(obj, discover, obj.millModuleSegments.value.isEmpty)
+    val (crossFilters, nameFilters) = partitionFilter(rest)
+    def filter(m: Module) = filterName(m, nameFilters) && filterCross(m, crossFilters)
+    last match {
+      case "__" =>
+        Right(
+          // Filter out our own module in
+          obj.millInternal.modules.flatMap(m => singleModuleModules(m, discover, m == obj))
+            .filter(filter)
+        )
+      case "_" => Right(direct.filter(filter))
+      case _ =>
+        direct.filter(filter).find(m => m.toString.split('.').last == last) match {
+          case None =>
+            Resolve.errorMsgLabel(direct.map(_.toString), Seq(Segment.Label(last)), obj.millModuleSegments.value)
+          case Some(s) => Right(Seq(s))
+        }
+    }
+  }
+
+  def endResolveCross(
+      obj: Module,
+      last: List[String],
+      discover: Discover[_],
+      rest: Seq[String]
+  ): Either[String, List[Module]] = {
+    val (crossFilters, nameFilters) = partitionFilter(rest)
+    def filter(m: Module) = filterName(m, nameFilters) && filterCross(m, crossFilters)
+    obj match {
+      case c: Cross[Module] =>
+        last match {
+          case List("__") => Right(c.millModuleDirectChildren.toList.filter(filter))
+          case items =>
+            c.items
+              .filter(_._1.length == items.length)
+              .filter(_._1.zip(last).forall { case (a, b) => b == "_" || a.toString == b })
+              .collect { case (k, v: Module) => v } match {
+              case Nil =>
+                Resolve.errorMsgCross(
+                  c.items.map(_._1.map(_.toString)),
+                  last,
+                  obj.millModuleSegments.value
+                )
+              case res => Right(res.filter(filter))
+            }
+
+        }
+      case _ =>
+        Left(
+          Resolve.unableToResolve(Segment.Cross(last), obj.millModuleSegments.value) +
+            Resolve.hintListLabel(obj.millModuleSegments.value)
+        )
+    }
+  }
+}
 
 object ResolveMetadata extends Resolve[String] {
   def singleModuleMeta(obj: Module, discover: Discover[_], isRootModule: Boolean): Seq[String] = {
